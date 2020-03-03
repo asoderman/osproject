@@ -6,6 +6,11 @@
 #![feature(alloc_error_handler)]
 #![feature(asm)]
 
+#![cfg_attr(test, no_main)]
+#![feature(custom_test_frameworks)]
+#![test_runner(crate::test_runner)]
+#![reexport_test_harness_main = "test_main"]
+
 extern crate alloc;
 
 pub mod interrupt;
@@ -19,6 +24,14 @@ use x86_64::structures::tss::TaskStateSegment;
 use x86_64::VirtAddr;
 use lazy_static::lazy_static;
 use uart_16550::SerialPort;
+
+use core::panic::PanicInfo;
+
+#[cfg(test)]
+use bootloader::{BootInfo, entry_point};
+
+#[cfg(test)]
+entry_point!(test_kernel_main);
 
 lazy_static! {
     pub static ref SERIAL: Mutex<SerialPort> = {
@@ -82,3 +95,60 @@ macro_rules! dbg_println {
                 concat!($fmt, "\n"), $($arg)*));
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u32)]
+pub enum QemuExitCode {
+    Success = 0x10,
+    Failed = 0x11,
+}
+
+pub fn exit_qemu(exit_code: QemuExitCode) {
+    use x86_64::instructions::port::Port;
+
+    unsafe {
+        let mut port = Port::new(0xf4);
+        port.write(exit_code as u32);
+    }
+}
+
+pub fn exit() {
+    exit_qemu(QemuExitCode::Success);
+}
+
+pub fn test_runner(tests: &[&dyn Fn()]) {
+    dbg_println!("Running {} tests", tests.len());
+    for test in tests {
+        test();
+    }
+
+    exit();
+}
+
+#[cfg(test)]
+pub fn test_kernel_main(_boot_info: &'static BootInfo) -> ! {
+    init();
+    test_main();
+    halt_loop();
+}
+
+
+pub fn test_panic_handler(info: &PanicInfo) -> ! {
+    dbg_println!("[failed] \n");
+    dbg_println!("Error: {}", info);
+    exit_qemu(QemuExitCode::Failed);
+    halt_loop();
+}
+
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    test_panic_handler(info)
+}
+
+
+#[test_case]
+fn trivial_assert() {
+    assert_eq!(1, 1);
+    dbg_println!("[ok]");
+    exit();
+}

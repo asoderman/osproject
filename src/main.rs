@@ -1,6 +1,10 @@
 #![no_std]
 #![no_main]
 
+#![feature(custom_test_frameworks)]
+#![test_runner(oslib::test_runner)]
+#![reexport_test_harness_main = "test_main"]
+
 extern crate alloc;
 
 use core::panic::PanicInfo;
@@ -8,6 +12,7 @@ use bootloader::{BootInfo, entry_point};
 
 use oslib::{init, println, dbg_println, halt_loop, task::TaskManager};
 
+#[cfg(not(test))]
 entry_point!(kernel_main);
 
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
@@ -37,15 +42,23 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     TaskManager::new();
     dbg_println!("TaskManager initialized");
 
+    #[cfg(test)]
+    test_main();
 
     halt_loop();
 }
 
+#[cfg(not(test))]
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
+pub fn panic(_info: &PanicInfo) -> ! {
 
     println!("{}", _info);
     halt_loop();
 
 }
 
+#[cfg(test)]
+#[panic_handler]
+fn test_panic_handler(_info: &PanicInfo) -> ! {
+    oslib::test_panic_handler(_info)
+}
