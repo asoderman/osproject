@@ -18,12 +18,12 @@ pub mod vga_text_buffer;
 pub mod gdt;
 pub mod memory;
 pub mod task;
+pub mod debug;
 
 use spin::Mutex;
 use x86_64::structures::tss::TaskStateSegment;
 use x86_64::VirtAddr;
 use lazy_static::lazy_static;
-use uart_16550::SerialPort;
 
 use core::panic::PanicInfo;
 
@@ -32,14 +32,6 @@ use bootloader::{BootInfo, entry_point};
 
 #[cfg(test)]
 entry_point!(test_kernel_main);
-
-lazy_static! {
-    pub static ref SERIAL: Mutex<SerialPort> = {
-        let mut serial_port = unsafe { SerialPort::new(0x3F8) };
-        serial_port.init();
-        Mutex::new(serial_port)
-    };
-}
 
 pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 
@@ -69,30 +61,6 @@ pub fn halt_loop() -> ! {
     loop {
         x86_64::instructions::hlt();
     }
-}
-
-pub fn _print(args: ::core::fmt::Arguments) {
-    use core::fmt::Write;
-    use x86_64::instructions::interrupts;
-
-    interrupts::without_interrupts(|| {
-        SERIAL.lock().write_fmt(args).expect("Printing to serial failed");
-    });
-}
-
-#[macro_export]
-macro_rules! dbg_print {
-    ($($arg:tt)*) => {
-        $crate::_print(format_args!($($arg)*));
-    }
-}
-
-#[macro_export]
-macro_rules! dbg_println {
-    () => ($crate::dbg_print!("\n"));
-    ($fmt:expr) => ($crate::dbg_print!(concat!($fmt, "\n")));
-    ($fmt:expr, $($arg:tt)*) => ($crate::dbg_print!(
-                concat!($fmt, "\n"), $($arg)*));
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
