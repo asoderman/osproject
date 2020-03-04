@@ -153,3 +153,16 @@ fn test_allocator() {
     assert_eq!(1, v[0]);
 
 }
+
+#[test_case]
+fn test_box() {
+    use alloc::boxed::Box;
+
+    let long_lived = Box::new(1);
+    for i in 0..HEAP_SIZE {
+        let x = Box::new(i);
+        assert_eq!(*x, i);
+    }
+
+    assert_eq!(*long_lived, 1);
+}
