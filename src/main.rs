@@ -42,9 +42,6 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     TaskManager::new();
     dbg_println!("TaskManager initialized");
 
-    #[cfg(test)]
-    test_main();
-
     halt_loop();
 }
 

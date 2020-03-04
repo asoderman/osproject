@@ -87,22 +87,33 @@ pub fn test_runner(tests: &[&dyn Fn()]) {
     dbg_println!("Running {} tests", tests.len());
     for test in tests {
         test();
+        dbg_print!(".");
     }
-
+    dbg_println!("\n\x1b[32m[ok]\x1b[0m");
     exit();
 }
 
 #[cfg(test)]
 pub fn test_kernel_main(_boot_info: &'static BootInfo) -> ! {
     init();
+    let phys_mem_offset = VirtAddr::new(_boot_info.physical_memory_offset);
+    let mut mapper = unsafe { memory::init(phys_mem_offset) };
+
+    let mut frame_allocator = unsafe { 
+        memory::BootInfoFrameAllocator::init(&_boot_info.memory_map)
+    };
+
+    memory::allocator::init_heap(&mut mapper, &mut frame_allocator)
+        .expect("Heap initialization failed");
     test_main();
     halt_loop();
 }
 
 
 pub fn test_panic_handler(info: &PanicInfo) -> ! {
-    dbg_println!("[failed] \n");
+    dbg_println!("\x1b[0;31;m[failed]\x1b[0m \n");
     dbg_println!("Error: {}", info);
+    dbg_println!("Invoked from: {}", core::file!());
     exit_qemu(QemuExitCode::Failed);
     halt_loop();
 }
@@ -117,6 +128,4 @@ fn panic(info: &PanicInfo) -> ! {
 #[test_case]
 fn trivial_assert() {
     assert_eq!(1, 1);
-    dbg_println!("[ok]");
-    exit();
 }

@@ -137,3 +137,19 @@ pub fn move_helper<T>(x: T) -> T {
 fn alloc_error_handler(layout: Layout) -> ! {
     panic!("Allocation error {:?}", layout);
 }
+
+#[test_case]
+fn test_allocator() {
+    use alloc::vec;
+
+    let mut v: vec::Vec<u64> = vec::Vec::new();
+    for n in 1..=100 {
+        v.push(n);
+    }
+
+    assert_eq!(100, v.len());
+    assert_eq!(100, v.pop().expect("Last vector element returned None"));
+    assert_eq!(99, v.len());
+    assert_eq!(1, v[0]);
+
+}
