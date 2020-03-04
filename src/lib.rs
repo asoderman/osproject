@@ -18,6 +18,7 @@ pub mod vga_text_buffer;
 pub mod gdt;
 pub mod memory;
 pub mod task;
+pub mod rtc;
 pub mod debug;
 
 use spin::Mutex;
