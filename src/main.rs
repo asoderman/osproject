@@ -42,6 +42,8 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     TaskManager::new();
     dbg_println!("TaskManager initialized");
 
+    dbg_println!("Boot time: {}", *oslib::rtc::BOOT_TIME);
+
     halt_loop();
 }
 

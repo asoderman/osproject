@@ -1,6 +1,15 @@
 use x86_64::instructions::port::Port;
 use x86_64::instructions::interrupts;
 
+use lazy_static::lazy_static;
+
+// BOOT_TIME is lazily evaluated so it must be dereferenced during boot
+// otherwise it will be inaccurate. Possibly change this to a const 
+// function
+lazy_static! {
+    pub static ref BOOT_TIME: Time = Time::now();
+}
+
 const SECOND_REG: u8 = 0x00;
 const MINUTE_REG: u8 = 0x02;
 const HOUR_REG: u8 = 0x04;
@@ -74,7 +83,18 @@ impl Time {
         interrupts::enable();
         t
     }
+}
 
+impl core::fmt::Display for Time {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}-{}-{} {}:{}:{}", 
+               self.year, 
+               self.month, 
+               self.day, 
+               self.hour, 
+               self.minute, 
+               self.second)
+    }
 }
 
 fn bcd_to_binary(bcd: u8) -> u8 {
