@@ -93,9 +93,18 @@ pub fn test_runner(tests: &[&dyn Fn()]) {
 }
 
 #[cfg(test)]
+pub static mut PHYS_OFFSET: u64 = 0;
+
+#[cfg(test)]
 pub fn test_kernel_main(_boot_info: &'static BootInfo) -> ! {
     init();
+    dbg_println!("calling test_main from test_kernel_main");
+    // using a global variable for testing purposes only
+    unsafe {
+        PHYS_OFFSET = _boot_info.physical_memory_offset; 
+    }
     test_main();
+    dbg_println!("test_main Finished");
     halt_loop();
 }
 
@@ -118,5 +127,4 @@ fn panic(info: &PanicInfo) -> ! {
 fn trivial_assert() {
     assert_eq!(1, 1);
     dbg_println!("[ok]");
-    exit();
 }

@@ -14,6 +14,8 @@ use x86_64::{
     VirtAddr,
 };
 
+use super::paging::MemoryRegion;
+
 // TODO: implement Slab allocator and possibly abstract out a heap interface
 
 #[global_allocator]
@@ -25,7 +27,7 @@ pub const HEAP_SIZE: usize = 100 * 1024;
 
 pub fn init_heap(mapper: &mut impl Mapper<Size4KiB>,
                  frame_allocator: &mut impl FrameAllocator<Size4KiB>
-                 ) -> Result<(), MapToError> {
+                 ) -> Result<MemoryRegion, MapToError<Size4KiB>> {
     let page_range = {
         let heap_start = VirtAddr::new(HEAP_START as u64);
         let heap_end = heap_start + HEAP_SIZE - 1u64;
@@ -45,7 +47,10 @@ pub fn init_heap(mapper: &mut impl Mapper<Size4KiB>,
         ALLOCATOR.0.lock().init(HEAP_START, HEAP_SIZE);
     }
 
-    Ok(())
+    Ok(MemoryRegion {
+        start: VirtAddr::new(HEAP_START as u64),
+        size: HEAP_SIZE,
+    })
 
 }
 
