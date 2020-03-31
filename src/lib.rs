@@ -101,7 +101,7 @@ pub static mut PHYS_OFFSET: u64 = 0;
 pub fn test_kernel_main(_boot_info: &'static BootInfo) -> ! {
     init();
     let phys_mem_offset = VirtAddr::new(_boot_info.physical_memory_offset);
-    let mut mapper = unsafe { memory::init(phys_mem_offset) };
+    let mut mapper = unsafe { memory::paging::offset_page_table(phys_mem_offset) };
 
     let mut frame_allocator = unsafe { 
         memory::BootInfoFrameAllocator::init(&_boot_info.memory_map)
