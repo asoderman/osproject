@@ -144,15 +144,12 @@ unsafe impl FrameAllocator<Size4KiB> for DummyAlloc {
 
 #[test_case]
 fn test_memory_manager() {
-    // TODO: include asserts that check for address being mapped/unmapped
-    // also include asserts that check for single and multi page allocations
+    // TODO: test translation when page is mapped/unmapped
     use crate::dbg_println;
 
-    dbg_println!("Testing memory manager");
     let dummy_alloc = DummyAlloc::new();
 
     let test_addr = VirtAddr::new(0x0f00000000);
-    // TODO: test failing because heap is not initialized 
     let mut memory_manager = MemoryManager::new(dummy_alloc);
     // using the PHYS_OFFSET global only available during testing
     let mut mapper = unsafe { 
@@ -161,17 +158,19 @@ fn test_memory_manager() {
 
     use x86_64::structures::paging::mapper::MapperAllSizes;
     memory_manager.request_address_space_at(test_addr, 5 * 1024, &mut mapper);
-    dbg_println!("Requested address space from memory manager. Page should be mapped");
-    dbg_println!("{:?} -> {:?}", test_addr, mapper.translate(test_addr));
-    dbg_println!("Memory regions: {:?}", memory_manager.get_used_regions());
-    dbg_println!("");
-    dbg_println!("Relinquishing address space");
+    // dbg_println!("Requested address space from memory manager. Page should be mapped");
+    // dbg_println!("{:?} -> {:?}", test_addr, mapper.translate(test_addr));
+    // dbg_println!("Memory regions: {:?}", memory_manager.get_used_regions());
+    assert!(memory_manager.get_used_regions().len() == 1);
+    //dbg_println!("");
+    //dbg_println!("Relinquishing address space");
     memory_manager.relinquish_address_space(test_addr, 5 * 1024, &mut mapper);
-    dbg_println!("Memory regions: {:?}", memory_manager.get_used_regions());
-    dbg_println!("");
+    assert!(memory_manager.get_used_regions().len() == 0);
+    //dbg_println!("Memory regions: {:?}", memory_manager.get_used_regions());
+    //dbg_println!("");
     memory_manager.request_address_space_at(test_addr, 1024, &mut mapper);
-    dbg_println!("{:?} -> {:?}", test_addr, mapper.translate(test_addr));
-    dbg_println!("Memory regions: {:?}", memory_manager.get_used_regions());
+    assert!(memory_manager.get_used_regions().len() == 1);
+    //dbg_println!("{:?} -> {:?}", test_addr, mapper.translate(test_addr));
+    //dbg_println!("Memory regions: {:?}", memory_manager.get_used_regions());
 
-    dbg_println!("[ok]");
 }

@@ -136,5 +136,4 @@ fn panic(info: &PanicInfo) -> ! {
 #[test_case]
 fn trivial_assert() {
     assert_eq!(1, 1);
-    dbg_println!("[ok]");
 }
