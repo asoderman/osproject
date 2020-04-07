@@ -6,6 +6,8 @@
 #![feature(alloc_error_handler)]
 #![feature(asm)]
 
+#![feature(weak_into_raw)]
+
 #![cfg_attr(test, no_main)]
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
@@ -36,6 +38,7 @@ entry_point!(test_kernel_main);
 
 pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 
+// FIXME: This can probably be moved to gdt.rs
 lazy_static! {
     static ref TSS: TaskStateSegment = {
         let mut tss = TaskStateSegment::new();

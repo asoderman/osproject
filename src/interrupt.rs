@@ -57,11 +57,29 @@ extern "x86-interrupt" fn breakpoint_handler(
     println!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
 }
 
+use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+
+static CONTEXT_SWITCHING_ENABLED: AtomicBool = AtomicBool::new(false);
+pub static PIT_TICKS: AtomicUsize = AtomicUsize::new(0);
+
+pub fn enable_context_switching() {
+    crate::dbg_println!("Enabled context switching");
+    CONTEXT_SWITCHING_ENABLED.store(true, Ordering::SeqCst);
+}
+
 extern "x86-interrupt" fn timer_interrupt_handler(
     _stack_frame: &mut InterruptStackFrame) {
+
+    if CONTEXT_SWITCHING_ENABLED.load(Ordering::SeqCst) && PIT_TICKS.load(Ordering::SeqCst) > 10 {
+        crate::dbg_println!("Attempting to switch proc");
+        crate::task::switch();
+    }
+
+    PIT_TICKS.store(PIT_TICKS.load(Ordering::SeqCst) + 1, Ordering::SeqCst);
     unsafe  {
         PICS.lock().notify_end_of_interrupt(InterruptIndex::Timer.as_u8())
     }
+
 }
 
 extern "x86-interrupt" fn keyboard_interrupt_handler(

@@ -10,7 +10,7 @@ extern crate alloc;
 use core::panic::PanicInfo;
 use bootloader::{BootInfo, entry_point};
 
-use oslib::{init, println, dbg_println, halt_loop, task::TaskManager};
+use oslib::{init, println, dbg_println, halt_loop};
 
 #[cfg(not(test))]
 entry_point!(kernel_main);
@@ -19,13 +19,14 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     use oslib::memory;
     use x86_64::VirtAddr;
 
-    dbg_println!("Booting os...");
-    println!("Hello world{}", "!");
-
     // TODO: This probably needs to be towards the end of main
     // since interrupts become enabled we don't know if anything else
     // will run.
     init();
+
+    dbg_println!("Booting os...");
+    println!("Hello world{}", "!");
+
 
     let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
 
@@ -38,29 +39,22 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     let heap_region = memory::allocator::init_heap(&mut mapper, &mut memory_manager.frame_allocator)
         .expect("Heap initialization failed");
     memory_manager.heap_was_init_at(heap_region);
-    let test_addr = VirtAddr::new(0x0f00000000);
-    use x86_64::structures::paging::mapper::MapperAllSizes;
-    memory_manager.request_address_space_at(test_addr, 5 * 1024, &mut mapper);
-    dbg_println!("Requested address space from memory manager. Page should be mapped");
-    dbg_println!("{:?} -> {:?}", test_addr, mapper.translate(test_addr));
-    dbg_println!("Memory regions: {:?}", memory_manager.get_used_regions());
-    dbg_println!("");
-    dbg_println!("Relinquishing address space");
-    memory_manager.relinquish_address_space(test_addr, 5 * 1024, &mut mapper);
-    dbg_println!("Memory regions: {:?}", memory_manager.get_used_regions());
-    dbg_println!("");
-    memory_manager.request_address_space_at(test_addr, 1024, &mut mapper);
-    dbg_println!("{:?} -> {:?}", test_addr, mapper.translate(test_addr));
-    dbg_println!("Memory regions: {:?}", memory_manager.get_used_regions());
 
 
     dbg_println!("Initializing task manager");
-    TaskManager::new();
+    oslib::task::init();
+    oslib::task::TASKS.lock().spawn(hello_world).expect("Could not spawn a new process from function");
     dbg_println!("TaskManager initialized");
 
+    oslib::interrupt::enable_context_switching();
     dbg_println!("Boot time: {}", *oslib::rtc::BOOT_TIME);
 
+
     halt_loop();
+}
+
+extern "C" fn hello_world() {
+    dbg_println!("Hello world (as a process)");
 }
 
 #[cfg(not(test))]

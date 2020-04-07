@@ -30,3 +30,9 @@ pub fn init() {
         load_tss(GDT.1.tss_selector);
     }
 }
+
+pub fn set_tss(stack: usize) {
+    use x86_64::VirtAddr;
+    let mut tss = *TSS;
+    tss.privilege_stack_table[0] = VirtAddr::new(stack as u64);
+}
