@@ -8,3 +8,6 @@
 [redox os](https://gitlab.redox-os.org/redox-os/redox)
 
 [SerenityOS](https://github.com/SerenityOS/serenity)
+
+[Oxidizedos](https://github.com/ryan-jacobs1/oxidizedos)
+

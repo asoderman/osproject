@@ -1,8 +1,8 @@
 use x86_64::{
     structures::paging::{PageTable, OffsetPageTable, 
-        Size4KiB, Mapper, mapper::MapperFlush, mapper::MapToError, FrameAllocator, page::Page, page_table::PageTableFlags},
+        Size4KiB, Mapper, mapper::MapperFlush, mapper::MapToError, FrameAllocator, page::Page, page_table::PageTableFlags, PhysFrame, UnusedPhysFrame},
     VirtAddr,
-    PhysAddr
+    PhysAddr,
 };
 
 use alloc::vec::Vec;
@@ -115,6 +115,27 @@ impl<A: FrameAllocator<Size4KiB>> MemoryManager<A> {
             mapper.unmap(p).expect("could not unmap page").1.flush();
         }
         self.used_memory_regions.retain(|&region| { region.start != addr });
+    }
+
+    pub fn identity_map<M: Mapper<Size4KiB>>(&mut self, addr: usize, size: usize, mapper: &mut M) -> Result<MemoryRegion, MapToError<Size4KiB>> {
+        // TODO: Size does nothing currently, only 1 page is identity 
+        // mapped per call
+        // TODO: Not checking if physical frame is being used
+
+        crate::dbg_println!("Identity mapping: {:X}", addr);
+        let page = Page::from_start_address(VirtAddr::new(addr as u64)).unwrap();
+        let frame = PhysFrame::from_start_address(PhysAddr::new(addr as u64)).unwrap();
+        let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
+
+        unsafe {
+            mapper.map_to(page, UnusedPhysFrame::new(frame), flags, &mut self.frame_allocator)?.flush();
+        }
+        let m = MemoryRegion {
+            start: VirtAddr::new(addr as u64),
+            size: 1
+        };
+        self.used_memory_regions.push(m.clone());
+        Ok(m)
     }
 }
 

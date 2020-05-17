@@ -5,11 +5,13 @@
 #![feature(const_fn)]
 #![feature(alloc_error_handler)]
 #![feature(asm)]
+#![feature(global_asm)]
 
 #![cfg_attr(test, no_main)]
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
+#![feature(box_syntax)]
 
 extern crate alloc;
 
@@ -20,6 +22,9 @@ pub mod memory;
 pub mod task;
 pub mod rtc;
 pub mod debug;
+
+pub mod machine;
+pub mod thread;
 
 use spin::Mutex;
 use x86_64::structures::tss::TaskStateSegment;
