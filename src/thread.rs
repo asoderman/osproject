@@ -323,11 +323,13 @@ pub fn cooperative_scheduler_test() {
         });
         schedule(box x);
     }
-    println!("scheduled all threads");
+    let scheduled_count = READY.lock().len();
+    println!("scheduled all ({}) threads", scheduled_count);
     while counter.load(Ordering::SeqCst) < 100 {
         surrender();
     }
     println!("counter: {}", counter.load(Ordering::SeqCst));
+
 }
 
 pub fn me() -> usize {

@@ -24,7 +24,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     // TODO: This probably needs to be towards the end of main
     // since interrupts become enabled we don't know if anything else
-    // will run.
+    // will run. UPDATE: Moved enable interrupts out of this fn
     init();
 
     let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
@@ -51,6 +51,10 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     dbg_println!("Boot time: {}", *oslib::rtc::BOOT_TIME);
 
     oslib::thread::init();
+
+    oslib::enable_interrupts();
+
+    oslib::thread::cooperative_scheduler_test();
 
     halt_loop();
 }
