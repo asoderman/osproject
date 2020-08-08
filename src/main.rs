@@ -52,10 +52,29 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     oslib::thread::init();
 
+    use alloc::boxed::Box;
+    oslib::thread::spawn_kernel_task(Box::new(init_task));
+    oslib::thread::spawn_kernel_task(Box::new(dummy_task));
+
     oslib::enable_interrupts();
 
-    oslib::thread::cooperative_scheduler_test();
+    //oslib::thread::cooperative_scheduler_test();
 
+    halt_loop();
+}
+
+fn init_task() {
+
+    println!("This is the idle task");
+
+    // modified halt loop
+    println!("Idle: .");
+    halt_loop();
+}
+
+fn dummy_task() {
+    println!("Another thread executing.");
+    oslib::enable_interrupts();
     halt_loop();
 }
 

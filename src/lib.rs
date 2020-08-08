@@ -64,10 +64,12 @@ pub fn init() {
 }
 
 pub fn enable_interrupts() {
-    x86_64::instructions::interrupts::enable();
+    dbg_println!("Enabling interrupts");
+    machine::enable(true);
 }
 
 pub fn halt_loop() -> ! {
+    enable_interrupts();
     loop {
         x86_64::instructions::hlt();
     }

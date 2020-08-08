@@ -6,6 +6,7 @@ use spin::Mutex;
 use pic8259_simple::ChainedPics;
 
 use crate::println;
+use crate::dbg_println;
 use crate::gdt;
 
 lazy_static! {
@@ -59,6 +60,11 @@ extern "x86-interrupt" fn breakpoint_handler(
 
 extern "x86-interrupt" fn timer_interrupt_handler(
     _stack_frame: &mut InterruptStackFrame) {
+    println!(".");
+    if crate::thread::READY.lock().len() > 1 {
+        crate::thread::surrender();
+    }
+    dbg_println!("End of interrupt: Timer");
     unsafe  {
         PICS.lock().notify_end_of_interrupt(InterruptIndex::Timer.as_u8())
     }

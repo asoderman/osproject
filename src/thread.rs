@@ -152,8 +152,6 @@ impl TCB for TCBImpl {
 }
 
 
-
-
 type Cleanup = FnOnce() + Send + Sync;
 
 /// Holds tasks to perform after context-switching.
@@ -290,8 +288,15 @@ pub fn schedule(tcb: Box<dyn TCB>) {
     unsafe {
         let was = machine::disable();
         READY.lock().push_back(tcb);
+
+        dbg_println!("Interrupts were enabled: {}", was);
         machine::enable(was);
     }
+}
+
+pub fn spawn_kernel_task(f: Box<dyn FnOnce() -> () + Send + Sync>) {
+    let func = Box::new(TCBImpl::new(f));
+    schedule(func);
 }
 
 pub fn surrender_test() {
@@ -310,6 +315,7 @@ pub fn surrender_test() {
 
 pub fn cooperative_scheduler_test() {
     // TODO: Convert this to an actual unit test
+    dbg_println!("running cooperative scheduler test");
     println!("running cooperative scheduler test");
     let counter = Arc::new(AtomicU32::new(0));
     for i in 0..10 {  
@@ -329,6 +335,8 @@ pub fn cooperative_scheduler_test() {
         surrender();
     }
     println!("counter: {}", counter.load(Ordering::SeqCst));
+
+    surrender();
 
 }
 
