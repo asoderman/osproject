@@ -1,6 +1,4 @@
-
 use crate::update_tss;
-
 
 use alloc::boxed::Box;
 
@@ -118,51 +116,3 @@ pub fn test_context_switch() {
     }
 }
 
-/*
-#[derive(Clone, Debug)]
-#[repr(C)]
-pub struct Context {
-
-    fx: usize,
-
-    rflags: usize,
-
-    cr3: usize, 
-    r12: usize,
-    r13: usize,
-    r14: usize,
-    r15: usize,
-    rbx: usize,
-
-    rbp: usize,
-    rsp: usize,
-
-}
-
-
-impl Context {
-
-    pub fn new() -> Context {
-        Context {
-            fx: 0,
-            cr3: 0,
-            rflags: 0,
-            rbx: 0,
-            r12: 0,
-            r13: 0,
-            r14: 0,
-            r15: 0,
-            rbp: 0,
-            rsp: 0,
-        }
-    }
-
-    #[cold]
-    #[inline(never)]
-    #[naked]
-    pub unsafe fn switch_to(&mut self, next: &mut Context) {
-        //asm!("fxsave64 [{}]", in(reg), self.fx);
-    }
-}
-
-*/
