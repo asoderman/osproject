@@ -140,8 +140,8 @@ impl<A: FrameAllocator<Size4KiB>> MemoryManager<A> {
 }
 
 
-#[cfg(test)]
-use x86_64::structures::paging::{UnusedPhysFrame, PhysFrame};
+//#[cfg(test)]
+//use x86_64::structures::paging::{UnusedPhysFrame, PhysFrame};
 
 #[cfg(test)]
 struct DummyAlloc {
