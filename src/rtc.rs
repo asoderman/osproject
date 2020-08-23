@@ -61,7 +61,7 @@ impl Time {
         let mut month = CMOS_read(MONTH_REG);
         let mut year = CMOS_read(YEAR_REG);
 
-        if (!(CMOS_read(0x0b) & 0x04) > 0) {
+        if !(CMOS_read(0x0b) & 0x04) > 0 {
             second = bcd_to_binary(second);
             minute = bcd_to_binary(minute);
             hour = bcd_to_binary(hour);

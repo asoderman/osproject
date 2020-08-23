@@ -31,10 +31,10 @@ pub mod debug;
 pub mod context;
 pub mod proc;
 
-use spin::{Mutex, RwLock};
+
 use x86_64::structures::tss::TaskStateSegment;
 use x86_64::VirtAddr;
-use lazy_static::lazy_static;
+
 
 use core::panic::PanicInfo;
 
@@ -69,7 +69,7 @@ static mut TSS: UnsafeCell<Option<TaskStateSegment>> = UnsafeCell::new(None);
 
 pub fn get_tss() -> &'static TaskStateSegment {
     unsafe {
-        if let Some(tss) = *TSS.get() {
+        if let Some(_tss) = *TSS.get() {
             return TSS.get().as_ref().unwrap().as_ref().unwrap();
         } else {
             let new = Some(create_tss());

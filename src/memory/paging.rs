@@ -1,14 +1,14 @@
 use x86_64::{
     structures::paging::{PageTable, OffsetPageTable, 
-        Size4KiB, Mapper, mapper::MapperFlush, mapper::MapToError, FrameAllocator, page::Page, page_table::PageTableFlags, PhysFrame, UnusedPhysFrame},
+        Size4KiB, Mapper, mapper::MapToError, FrameAllocator, page::Page, page_table::PageTableFlags, PhysFrame, UnusedPhysFrame},
     VirtAddr,
     PhysAddr,
 };
 
 use alloc::vec::Vec;
-use super::BootInfoFrameAllocator;
 
-use bootloader::bootinfo::{MemoryRegionType, MemoryMap};
+
+
 
 unsafe fn active_level_4_table(phys_mem_offset: VirtAddr) -> &'static mut PageTable {
     use x86_64::registers::control::Cr3;
@@ -117,7 +117,7 @@ impl<A: FrameAllocator<Size4KiB>> MemoryManager<A> {
         self.used_memory_regions.retain(|&region| { region.start != addr });
     }
 
-    pub fn identity_map<M: Mapper<Size4KiB>>(&mut self, addr: usize, size: usize, mapper: &mut M) -> Result<MemoryRegion, MapToError<Size4KiB>> {
+    pub fn identity_map<M: Mapper<Size4KiB>>(&mut self, addr: usize, _size: usize, mapper: &mut M) -> Result<MemoryRegion, MapToError<Size4KiB>> {
         // TODO: Size does nothing currently, only 1 page is identity 
         // mapped per call
         // TODO: Not checking if physical frame is being used

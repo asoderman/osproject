@@ -3,7 +3,7 @@ use core::ptr::NonNull;
 
 use super::list_allocator::{ListHeap, HoleInfo};
 
-use lazy_static::lazy_static;
+
 
 use spin::Mutex;
 

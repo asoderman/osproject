@@ -2,7 +2,7 @@ use x86_64::structures::gdt::{GlobalDescriptorTable, Descriptor, SegmentSelector
 
 use lazy_static::lazy_static;
 
-use crate::TSS;
+
 
 struct Selectors {
     code_selector: SegmentSelector,

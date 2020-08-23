@@ -22,7 +22,7 @@ lazy_static! {
 fn new_pid() -> usize {
     // FIXME: Doesn't handle overflow, does not account for used/free pids
     unsafe {
-        let mut p = NEXT_PID.get_mut();
+        let p = NEXT_PID.get_mut();
         *p += 1;
         *p
     }
@@ -126,7 +126,7 @@ pub fn test_proc() {
     let p1 = Process::spawn_kernel_task(hello_world as usize);
     let p2 = Process::spawn_kernel_task(hello_world as usize);
 
-    let mut p3 = Process::spawn_kernel_task(hang as usize);
+    let p3 = Process::spawn_kernel_task(hang as usize);
     make_active(p3);
 
     ready(p1);
