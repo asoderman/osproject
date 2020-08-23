@@ -25,9 +25,6 @@ pub mod task;
 pub mod rtc;
 pub mod debug;
 
-//pub mod machine;
-//pub mod thread;
-
 pub mod context;
 pub mod proc;
 
@@ -45,23 +42,6 @@ use bootloader::{BootInfo, entry_point};
 entry_point!(test_kernel_main);
 
 pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
-
-/*
-lazy_static! {
-    static ref TSS: TaskStateSegment = {
-        let mut tss = TaskStateSegment::new();
-        tss.interrupt_stack_table[DOUBLE_FAULT_IST_INDEX as usize] = {
-            const STACK_SIZE: usize = 4096;
-            static mut STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
-
-            let stack_start = VirtAddr::from_ptr(unsafe {&STACK});
-            let stack_end = stack_start + STACK_SIZE;
-            stack_end
-        };
-        tss
-    };
-}
-*/
 
 use core::cell::UnsafeCell;
 
