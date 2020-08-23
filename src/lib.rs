@@ -6,12 +6,14 @@
 #![feature(alloc_error_handler)]
 #![feature(asm)]
 #![feature(global_asm)]
+#![feature(naked_functions)]
 
 #![cfg_attr(test, no_main)]
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 #![feature(box_syntax)]
+#![feature(llvm_asm)]
 
 extern crate alloc;
 
@@ -26,7 +28,10 @@ pub mod debug;
 pub mod machine;
 pub mod thread;
 
-use spin::Mutex;
+pub mod context;
+pub mod proc;
+
+use spin::{Mutex, RwLock};
 use x86_64::structures::tss::TaskStateSegment;
 use x86_64::VirtAddr;
 use lazy_static::lazy_static;
@@ -41,6 +46,7 @@ entry_point!(test_kernel_main);
 
 pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 
+/*
 lazy_static! {
     static ref TSS: TaskStateSegment = {
         let mut tss = TaskStateSegment::new();
@@ -55,6 +61,48 @@ lazy_static! {
         tss
     };
 }
+*/
+
+use core::cell::UnsafeCell;
+
+static mut TSS: UnsafeCell<Option<TaskStateSegment>> = UnsafeCell::new(None);
+
+pub fn get_tss() -> &'static TaskStateSegment {
+    unsafe {
+        if let Some(tss) = *TSS.get() {
+            return TSS.get().as_ref().unwrap().as_ref().unwrap();
+        } else {
+            let new = Some(create_tss());
+            let ptr = TSS.get();
+            *ptr = new;
+            return get_tss();
+        }
+    }
+}
+
+
+fn create_tss() -> TaskStateSegment {
+    let mut tss = TaskStateSegment::new();
+    tss.interrupt_stack_table[DOUBLE_FAULT_IST_INDEX as usize] = {
+        const STACK_SIZE: usize = 4096;
+        static mut STACK: [u8; STACK_SIZE] = [0; STACK_SIZE];
+
+        let stack_start = VirtAddr::from_ptr(unsafe {&STACK});
+        let stack_end = stack_start + STACK_SIZE;
+        stack_end
+    };
+    tss
+}
+
+pub fn update_TSS(rsp: usize) {
+    // Update ring 0 stack
+    unsafe {
+        use core::convert::TryInto;
+        if let Some(mut tss) = *TSS.get() {
+            tss.privilege_stack_table[0] = VirtAddr::new(rsp.try_into().unwrap());
+        }
+    }
+}
 
 pub fn init() {
     gdt::init();
@@ -64,7 +112,7 @@ pub fn init() {
 }
 
 pub fn enable_interrupts() {
-    dbg_println!("Enabling interrupts");
+    //dbg_println!("Enabling interrupts");
     machine::enable(true);
 }
 
@@ -92,6 +140,7 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
 }
 
 pub fn exit() {
+    dbg_println!("Exiting...");
     exit_qemu(QemuExitCode::Success);
 }
 

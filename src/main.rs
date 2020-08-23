@@ -6,6 +6,7 @@
 #![reexport_test_harness_main = "test_main"]
 
 extern crate alloc;
+extern crate rlibc;
 
 use core::panic::PanicInfo;
 use bootloader::{BootInfo, entry_point};
@@ -53,8 +54,14 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     oslib::thread::init();
 
     use alloc::boxed::Box;
-    oslib::thread::spawn_kernel_task(Box::new(init_task));
-    oslib::thread::spawn_kernel_task(Box::new(dummy_task));
+    //oslib::thread::spawn_kernel_task(Box::new(init_task));
+    //oslib::thread::spawn_kernel_task(Box::new(dummy_task));
+
+    //dbg_println!("TOTAL PROCS: {}", oslib::task::get_procs());
+
+    //oslib::context::test_context_switch();
+    
+    oslib::proc::test_proc();
 
     oslib::enable_interrupts();
 
@@ -68,14 +75,30 @@ fn init_task() {
     println!("This is the idle task");
 
     // modified halt loop
-    println!("Idle: .");
-    halt_loop();
+    let mut cnt: usize = 0;
+    loop {
+
+
+        if cnt > 350_000_000 {
+            println!("Idle: .");
+            cnt = 0;
+        }
+        cnt += 1;
+        //x86_64::instructions::hlt();
+
+    }
+    
 }
 
 fn dummy_task() {
     println!("Another thread executing.");
     oslib::enable_interrupts();
-    halt_loop();
+
+    loop {
+        println!("Another");
+        //halt_loop();
+        x86_64::instructions::hlt();
+    }
 }
 
 #[cfg(not(test))]

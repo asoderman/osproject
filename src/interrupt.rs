@@ -59,14 +59,23 @@ extern "x86-interrupt" fn breakpoint_handler(
 }
 
 extern "x86-interrupt" fn timer_interrupt_handler(
-    _stack_frame: &mut InterruptStackFrame) {
-    println!(".");
-    if crate::thread::READY.lock().len() > 1 {
-        crate::thread::surrender();
-    }
-    dbg_println!("End of interrupt: Timer");
+    stack_frame: &mut InterruptStackFrame) {
+    //println!(".");
+    // dbg_println!("End of interrupt: Timer");
     unsafe  {
         PICS.lock().notify_end_of_interrupt(InterruptIndex::Timer.as_u8())
+    }
+
+    use core::sync::atomic::Ordering;
+
+    let elapsed = unsafe { crate::proc::TICKS.fetch_add(1, Ordering::SeqCst) };
+
+    if crate::proc::READY.lock().len() > 1 && elapsed > 10 {
+        unsafe {
+            crate::proc::TICKS.store(0, Ordering::SeqCst);
+        }
+        crate::proc::schedule_and_then_switch();
+        crate::dbg_println!("Context switched");
     }
 }
 

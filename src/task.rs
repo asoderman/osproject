@@ -5,7 +5,9 @@ use core::mem;
 use core::alloc::{GlobalAlloc, Layout};
 
 use alloc::sync::Arc;
-use spin::RwLock;
+use spin::{Mutex, RwLock};
+
+use lazy_static::lazy_static;
 
 pub static CONTEXT_SWITCH_LOCK: AtomicBool = AtomicBool::new(false);
 
@@ -15,9 +17,17 @@ pub static MAX_PROCS: usize = 256;
 // FIXME: rough draft error codes
 pub static EAGAIN: i32 = -2;
 
+
+lazy_static! {
+
+    pub static ref TASKMANAGER: Mutex<TaskManager> = Mutex::new(TaskManager::new());
+
+}
+
+
 pub struct TaskManager {
 
-    procs: BTreeMap<usize, Arc::<RwLock<Proc>>>,
+    pub procs: BTreeMap<usize, Arc::<RwLock<Proc>>>,
     next_id: usize
 
     //current_task: usize,
@@ -49,10 +59,11 @@ impl TaskManager {
             }
 
             let p = Proc::from(self.next_id);
+            self.procs.insert(self.next_id, Arc::new(RwLock::new(p)));
             self.next_id += 1;
 
             Ok(self.procs
-               .get(&p.id)
+               .get(&(self.next_id - 1))
                .expect("Failed to create new process"))
 
     }
@@ -72,7 +83,8 @@ impl TaskManager {
                     *b = 0;
                 }
 
-                let mut stack = vec![0; 65_536].into_boxed_slice();
+                let mut stack = vec![0; 4096].into_boxed_slice();
+
                 let offset = stack.len() - mem::size_of::<usize>();
 
                 unsafe {
@@ -114,6 +126,25 @@ impl Proc {
             kstack: None,
         }
     }
+
+    pub fn switch_to(&mut self, other: &mut Self) {
+        x86_64::instructions::interrupts::disable();
+        unsafe {
+            self.cpu_context.switch(&mut other.cpu_context);
+        }
+    }
+
+    pub fn dump(&self) {
+        crate::dbg_println!("{} STACK DUMP: {:?}", self.id, self.kstack);
+    }
+}
+
+pub fn spawn_kernel_task(f: extern fn()) {
+    let _ = TASKMANAGER.lock().spawn(f);
+}
+
+pub fn get_procs() -> usize {
+    TASKMANAGER.lock().procs.len()
 }
 
 // The state of the cpu during execution
@@ -171,7 +202,19 @@ impl CPUContext {
         self.fx = address;
     }
 
+    pub unsafe fn push_stack(&mut self, value: usize) {
+        self.rsp -= mem::size_of::<usize>();
+        *(self.rsp as *mut usize) = value;
+    }
+
+    pub unsafe fn pop_stack(&mut self) -> usize {
+        let value = *(self.rsp as *mut usize);
+        self.rsp += mem::size_of::<usize>();
+        value
+    }
+
     pub unsafe fn switch(&mut self, next: &mut CPUContext) {
+        crate::dbg_println!("switching contexts");
         // Save the floating point register
         asm!("fxsave64 [$0]" : :"r"(self.fx) : "memory": "intel", "volatile");
         self.loadable = true;
@@ -185,8 +228,8 @@ impl CPUContext {
         }
 
         // move the current cr3 (page table address) into the structure
-        asm!("mov $0, cr3": : "r"(self.cr3) : :"memory" : 
-             "intel", "volatile");
+        //asm!("mov $0, cr3": : "r"(self.cr3) : :"memory" : 
+        //    "intel", "volatile");
         // check if the cr3 needs to be updated 
         if next.cr3 != self.cr3 {
             asm!("mov cr3, $0" : : "r"(next.cr3) : "memory" : 
