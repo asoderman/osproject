@@ -11,7 +11,7 @@ extern crate rlibc;
 use core::panic::PanicInfo;
 use bootloader::{BootInfo, entry_point};
 
-use oslib::{init, println, dbg_println, halt_loop, task::TaskManager};
+use oslib::{init, println, dbg_println, halt_loop};
 
 #[cfg(not(test))]
 entry_point!(kernel_main);
@@ -41,23 +41,8 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
     memory_manager.heap_was_init_at(heap_region);
     // Identity map Local APIC
     memory_manager.identity_map(0xfee00000, 1, &mut mapper);
-    use x86_64::structures::paging::mapper::MapperAllSizes;
-
-
-    /* dbg_println!("Initializing task manager");
-    TaskManager::new();
-    dbg_println!("TaskManager initialized");
-    */
 
     dbg_println!("Boot time: {}", *oslib::rtc::BOOT_TIME);
-
-    //oslib::thread::init();
-
-    use alloc::boxed::Box;
-    //oslib::thread::spawn_kernel_task(Box::new(init_task));
-    //oslib::thread::spawn_kernel_task(Box::new(dummy_task));
-
-    //dbg_println!("TOTAL PROCS: {}", oslib::task::get_procs());
 
     //oslib::context::test_context_switch();
     
@@ -65,11 +50,10 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     oslib::enable_interrupts();
 
-    //oslib::thread::cooperative_scheduler_test();
-
     halt_loop();
 }
 
+#[allow(dead_code)]
 fn init_task() {
 
     println!("This is the idle task");
@@ -88,17 +72,6 @@ fn init_task() {
 
     }
     
-}
-
-fn dummy_task() {
-    println!("Another thread executing.");
-    oslib::enable_interrupts();
-
-    loop {
-        println!("Another");
-        //halt_loop();
-        x86_64::instructions::hlt();
-    }
 }
 
 #[cfg(not(test))]
