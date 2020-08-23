@@ -43,9 +43,7 @@ pub fn init_heap(mapper: &mut impl Mapper<Size4KiB>,
         mapper.map_to(page, frame, flags, frame_allocator)?.flush();
     }
 
-    unsafe {
-        ALLOCATOR.0.lock().init(HEAP_START, HEAP_SIZE);
-    }
+    ALLOCATOR.0.lock().init(HEAP_START, HEAP_SIZE);
 
     Ok(MemoryRegion {
         start: VirtAddr::new(HEAP_START as u64),

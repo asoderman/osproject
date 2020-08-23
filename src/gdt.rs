@@ -15,10 +15,8 @@ lazy_static! {
     static ref GDT: (GlobalDescriptorTable, Selectors) = {
         let mut gdt = GlobalDescriptorTable::new();
         let code_selector =  gdt.add_entry(Descriptor::kernel_code_segment());
-        unsafe {
             let tss_selector = gdt.add_entry(Descriptor::tss_segment(crate::get_tss()));
         (gdt, Selectors { code_selector, tss_selector })
-        }
     };
 }
 
