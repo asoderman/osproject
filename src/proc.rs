@@ -28,6 +28,7 @@ fn new_pid() -> usize {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Debug)]
 enum Priority {
     High,
@@ -90,12 +91,14 @@ pub fn switch_to(p: Process) {
     }
 }
 
+#[allow(unused_unsafe)]
 pub fn make_active(p: Process) {
     unsafe {
         *ACTIVE.lock() = Some(p);
     }
 }
 
+#[allow(unused_unsafe)]
 pub fn ready(p: Process) {
     unsafe {
         match p.priority {

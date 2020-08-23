@@ -17,7 +17,7 @@ const DAY_REG: u8 = 0x07;
 const MONTH_REG: u8 = 0x08;
 const YEAR_REG: u8 = 0x09;
 
-fn CMOS_read(index: u8) -> u8 {
+fn cmos_read(index: u8) -> u8 {
     unsafe {
         let mut out = Port::new(0x70);
         out.write(index);
@@ -26,7 +26,8 @@ fn CMOS_read(index: u8) -> u8 {
     }
 }
 
-fn CMOS_write(index: u8, data: u8) {
+#[allow(dead_code)]
+fn cmos_write(index: u8, data: u8) {
     unsafe {
         let mut out1 = Port::new(0x70);
         out1.write(index);
@@ -35,8 +36,8 @@ fn CMOS_write(index: u8, data: u8) {
     }
 }
 
-fn CMOS_get_update_in_progress() -> bool {
-    (CMOS_read(0x0A) & 0x80) != 0
+fn cmos_get_update_in_progress() -> bool {
+    (cmos_read(0x0A) & 0x80) != 0
 }
 
 #[derive(Debug)]
@@ -53,15 +54,15 @@ impl Time {
     pub fn now() -> Time {
         // Returns UTC now
         interrupts::disable();
-        while CMOS_get_update_in_progress() {}
-        let mut second = CMOS_read(SECOND_REG);
-        let mut minute = CMOS_read(MINUTE_REG);
-        let mut hour = CMOS_read(HOUR_REG);
-        let mut day = CMOS_read(DAY_REG);
-        let mut month = CMOS_read(MONTH_REG);
-        let mut year = CMOS_read(YEAR_REG);
+        while cmos_get_update_in_progress() {}
+        let mut second = cmos_read(SECOND_REG);
+        let mut minute = cmos_read(MINUTE_REG);
+        let mut hour = cmos_read(HOUR_REG);
+        let mut day = cmos_read(DAY_REG);
+        let mut month = cmos_read(MONTH_REG);
+        let mut year = cmos_read(YEAR_REG);
 
-        if !(CMOS_read(0x0b) & 0x04) > 0 {
+        if !(cmos_read(0x0b) & 0x04) > 0 {
             second = bcd_to_binary(second);
             minute = bcd_to_binary(minute);
             hour = bcd_to_binary(hour);

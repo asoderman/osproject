@@ -94,7 +94,7 @@ fn create_tss() -> TaskStateSegment {
     tss
 }
 
-pub fn update_TSS(rsp: usize) {
+pub fn update_tss(rsp: usize) {
     // Update ring 0 stack
     unsafe {
         use core::convert::TryInto;

@@ -40,7 +40,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
         .expect("Heap initialization failed");
     memory_manager.heap_was_init_at(heap_region);
     // Identity map Local APIC
-    memory_manager.identity_map(0xfee00000, 1, &mut mapper);
+    let _ = memory_manager.identity_map(0xfee00000, 1, &mut mapper);
 
     dbg_println!("Boot time: {}", *oslib::rtc::BOOT_TIME);
 

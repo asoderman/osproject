@@ -1,5 +1,5 @@
 
-use crate::update_TSS;
+use crate::update_tss;
 
 
 use alloc::boxed::Box;
@@ -86,7 +86,7 @@ impl Stack {
 #[cold]
 #[inline(never)]
 pub unsafe fn context_switch(from: &mut StackInfo, to: &mut StackInfo) {
-    update_TSS(to.rsp());
+    update_tss(to.rsp());
     switch_context_inner(from, to);
 }
 
@@ -117,14 +117,6 @@ pub fn test_context_switch() {
         crate::dbg_println!("Context switch successful");
     }
 }
-
-extern "C" fn finalize() {
-    // Called after entry returns
-    crate::dbg_println!("Process ended. <NYI>");
-
-    crate::halt_loop();
-}
-
 
 /*
 #[derive(Clone, Debug)]
