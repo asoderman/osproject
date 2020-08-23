@@ -29,7 +29,10 @@ version = "1.0"
 features = ["spin_no_std"]
 
 [package.metadata.bootimage]
-run-args = ["-serial", "stdio", "-smp", "4"]
+run-args = ["-serial", "stdio",
+            "-smp", "4",
+            "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"
+            ]
 test-args = ["-serial", "stdio", 
              "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
              "-display", "none"]

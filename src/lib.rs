@@ -112,6 +112,8 @@ pub enum QemuExitCode {
 }
 
 pub fn exit_qemu(exit_code: QemuExitCode) {
+    // If exit is not working make sure there is an exit device
+    // added to qemu start args
     use x86_64::instructions::port::Port;
 
     unsafe {
