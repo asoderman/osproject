@@ -51,7 +51,7 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
 
     dbg_println!("Boot time: {}", *oslib::rtc::BOOT_TIME);
 
-    oslib::thread::init();
+    //oslib::thread::init();
 
     use alloc::boxed::Box;
     //oslib::thread::spawn_kernel_task(Box::new(init_task));

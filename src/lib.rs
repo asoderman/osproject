@@ -25,8 +25,8 @@ pub mod task;
 pub mod rtc;
 pub mod debug;
 
-pub mod machine;
-pub mod thread;
+//pub mod machine;
+//pub mod thread;
 
 pub mod context;
 pub mod proc;
@@ -112,8 +112,9 @@ pub fn init() {
 }
 
 pub fn enable_interrupts() {
-    //dbg_println!("Enabling interrupts");
-    machine::enable(true);
+    unsafe {
+        llvm_asm!("sti");
+    }
 }
 
 pub fn halt_loop() -> ! {
