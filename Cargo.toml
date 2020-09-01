@@ -30,6 +30,9 @@ features = ["spin_no_std"]
 
 [package.metadata.bootimage]
 run-args = ["-serial", "stdio",
+            "-s",
+            "-d", "int",
+            "-D", "qemu-log.log",
             "-smp", "4",
             "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"
             ]
