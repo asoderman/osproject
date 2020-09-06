@@ -13,6 +13,7 @@ path = "src/lib.rs"
 [[bin]]
 name = "rustos"
 path = "src/main.rs"
+test = false
 
 [dependencies]
 bootloader = { version = "0.9.0", features = ["map_physical_memory"]}
