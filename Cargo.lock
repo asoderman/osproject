@@ -19,6 +19,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ad686b9b47363de7d36c05fb6885f17d08d0f2d15b1bc782a101fe3c94a2c7c"
 
 [[package]]
+name = "colors"
+version = "0.1.0"
+source = "git+https://github.com/asoderman/colors#d7eb3a51af020b00a47c69b86e202091490508ba"
+
+[[package]]
 name = "cpuio"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -59,6 +64,7 @@ name = "rustos"
 version = "0.1.0"
 dependencies = [
  "bootloader",
+ "colors",
  "lazy_static",
  "pc-keyboard",
  "pic8259_simple",

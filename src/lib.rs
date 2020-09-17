@@ -133,7 +133,7 @@ pub fn test_runner(tests: &[&dyn Fn()]) {
         test();
         dbg_print!(".");
     }
-    dbg_println!("\n\x1b[32m[ok]\x1b[0m");
+    dbg_println!("\n[{}]", colors::ansi::Green("ok"));
     exit();
 }
 
@@ -162,7 +162,7 @@ pub fn test_kernel_main(_boot_info: &'static BootInfo) -> ! {
 
 
 pub fn test_panic_handler(info: &PanicInfo) -> ! {
-    dbg_println!("\x1b[0;31;m[failed]\x1b[0m \n");
+    dbg_println!("[{}]\n", colors::ansi::Red("failed"));
     dbg_println!("Error: {}", info);
     dbg_println!("Invoked from: {}", core::file!());
     exit_qemu(QemuExitCode::Failed);
