@@ -18,7 +18,7 @@ entry_point!(kernel_main);
 
 fn kernel_main(boot_info: &'static BootInfo) -> ! {
     use oslib::memory;
-    use x86_64::VirtAddr;
+    use oslib::VirtAddr;
 
     dbg_println!("Booting os...");
     println!("Hello world{}", "!");

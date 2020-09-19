@@ -7,13 +7,13 @@
 #![feature(asm)]
 #![feature(global_asm)]
 #![feature(naked_functions)]
+#![feature(box_syntax)]
+#![feature(llvm_asm)]
 
 #![cfg_attr(test, no_main)]
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
-#![feature(box_syntax)]
-#![feature(llvm_asm)]
 
 extern crate alloc;
 
@@ -25,12 +25,13 @@ pub mod task;
 pub mod rtc;
 pub mod debug;
 
+// TODO: This module should most likely not be exposed. Instead it should 
+// be part of the proc crate
 pub mod context;
 pub mod proc;
 
-
 use x86_64::structures::tss::TaskStateSegment;
-use x86_64::VirtAddr;
+pub use x86_64::VirtAddr;
 
 
 use core::panic::PanicInfo;
